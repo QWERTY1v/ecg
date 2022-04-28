@@ -1,0 +1,52 @@
+%%capture
+import sys
+if 'google.colab' in sys.modules:
+    ! pip install systole
+    import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from systole.detection import interpolate_clipping, ecg_peaks
+from systole.plots import plot_raw
+from systole import import_dataset1, import_ppg
+from systole import serialSim
+from systole.recording import Oximeter
+
+from bokeh.io import output_notebook
+from bokeh.plotting import show
+output_notebook()
+
+sns.set_context('talk')
+# Import ECg recording
+ecg_df = import_dataset1(modalities=['ECG'], disable=True)
+signal = ecg_df[ecg_df.time.between(60, 360)].ecg.to_numpy()  # Select 5 minutes
+from systole.detectors import pan_tompkins, hamilton, moving_average, christov, engelse_zeelenberg
+%%Pan-Tompkins
+%%timeit
+peaks_pt = pan_tompkins(signal, sfreq=1000)
+show(
+    plot_raw(signal, modality='ecg', ecg_method='pan-tompkins', backend='bokeh', show_heart_rate=True)
+)
+%%Moving average
+%%timeit
+peaks_wa = ecg_peaks(signal, sfreq=1000, method="moving-average")
+show(
+    plot_raw(signal, modality='ecg', ecg_method='moving-average', backend='bokeh', show_heart_rate=True)
+)
+%%Hamilton
+%%timeit
+peaks_ha = hamilton(signal, sfreq=1000)
+show(
+    plot_raw(signal, modality='ecg', ecg_method='hamilton', backend='bokeh', show_heart_rate=True)
+)
+%%Christov
+%%timeit
+peaks_ch = christov(signal, sfreq=1000)
+show(
+    plot_raw(signal, modality='ecg', ecg_method='christov', backend='bokeh', show_heart_rate=True)
+)
+%%Engelse-Zeelenberg
+%%timeit
+peaks_ew = engelse_zeelenberg(signal, sfreq=1000)
+show(
+    plot_raw(signal, modality='ecg', ecg_method='engelse-zeelenberg', backend='bokeh', show_heart_rate=True)
+)
